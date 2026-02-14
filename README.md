@@ -12,9 +12,7 @@
 
 AgentMetrics automatically detects and monitors AI coding agents running on your machine — Claude Code, GitHub Copilot, Codex CLI, Aider, Cursor, Cline, and more — providing live metrics on CPU, memory, tokens, cost, git activity, and session timing, all in a beautiful TUI.
 
-<p align="center">
-  <img src="docs/screenshot.png" alt="AgentMetrics Dashboard" width="800">
-</p>
+> 📸 *Screenshot coming soon*
 
 ---
 
