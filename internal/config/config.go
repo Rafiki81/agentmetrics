@@ -103,13 +103,13 @@ type ExportConfig struct {
 
 // DisplayConfig controls which sections appear in the dashboard
 type DisplayConfig struct {
-	ShowTokens   bool `json:"show_tokens"`
-	ShowCost     bool `json:"show_cost"`
-	ShowGit      bool `json:"show_git"`
-	ShowTerminal bool `json:"show_terminal"`
-	ShowNetwork  bool `json:"show_network"`
-	ShowFiles    bool `json:"show_files"`
-	ShowSession  bool `json:"show_session"`
+	ShowTokens      bool `json:"show_tokens"`
+	ShowCost        bool `json:"show_cost"`
+	ShowGit         bool `json:"show_git"`
+	ShowTerminal    bool `json:"show_terminal"`
+	ShowNetwork     bool `json:"show_network"`
+	ShowFiles       bool `json:"show_files"`
+	ShowSession     bool `json:"show_session"`
 	ShowAlerts      bool `json:"show_alerts"`
 	ShowSecurity    bool `json:"show_security"`
 	ShowLocalModels bool `json:"show_local_models"`
@@ -137,8 +137,8 @@ type MonitorConfig struct {
 
 // LocalModelsConfig controls local model server monitoring
 type LocalModelsConfig struct {
-	Enabled   bool                    `json:"enabled"`
-	Endpoints []LocalModelEndpoint    `json:"endpoints"` // Custom endpoints beyond auto-detection
+	Enabled   bool                 `json:"enabled"`
+	Endpoints []LocalModelEndpoint `json:"endpoints"` // Custom endpoints beyond auto-detection
 }
 
 // LocalModelEndpoint defines a custom local model server
@@ -518,13 +518,13 @@ func DefaultConfig() *Config {
 		},
 
 		Display: DisplayConfig{
-			ShowTokens:   true,
-			ShowCost:     true,
-			ShowGit:      true,
-			ShowTerminal: true,
-			ShowNetwork:  true,
-			ShowFiles:    true,
-			ShowSession:  true,
+			ShowTokens:      true,
+			ShowCost:        true,
+			ShowGit:         true,
+			ShowTerminal:    true,
+			ShowNetwork:     true,
+			ShowFiles:       true,
+			ShowSession:     true,
 			ShowAlerts:      true,
 			ShowSecurity:    true,
 			ShowLocalModels: true,

@@ -65,40 +65,40 @@ const (
 type LocalModelStatus string
 
 const (
-	LocalModelRunning  LocalModelStatus = "RUNNING"
-	LocalModelLoaded   LocalModelStatus = "LOADED"  // Model loaded in memory
-	LocalModelIdle     LocalModelStatus = "IDLE"     // Server up but no model loaded
-	LocalModelStopped  LocalModelStatus = "STOPPED"
-	LocalModelUnknown  LocalModelStatus = "UNKNOWN"
+	LocalModelRunning LocalModelStatus = "RUNNING"
+	LocalModelLoaded  LocalModelStatus = "LOADED" // Model loaded in memory
+	LocalModelIdle    LocalModelStatus = "IDLE"   // Server up but no model loaded
+	LocalModelStopped LocalModelStatus = "STOPPED"
+	LocalModelUnknown LocalModelStatus = "UNKNOWN"
 )
 
 // LocalModelInfo holds metadata about a local model server
 type LocalModelInfo struct {
-	ServerName  string           `json:"server_name"`  // e.g., "Ollama", "LM Studio"
-	ServerID    string           `json:"server_id"`    // e.g., "ollama", "lm-studio"
-	Endpoint    string           `json:"endpoint"`     // e.g., "http://localhost:11434"
-	PID         int              `json:"pid"`          // Server process PID (if found)
+	ServerName  string           `json:"server_name"` // e.g., "Ollama", "LM Studio"
+	ServerID    string           `json:"server_id"`   // e.g., "ollama", "lm-studio"
+	Endpoint    string           `json:"endpoint"`    // e.g., "http://localhost:11434"
+	PID         int              `json:"pid"`         // Server process PID (if found)
 	Status      LocalModelStatus `json:"status"`
 	Models      []LocalModel     `json:"models"`       // Available models
 	ActiveModel string           `json:"active_model"` // Currently loaded/running model
 	CPU         float64          `json:"cpu"`
-	MemoryMB    float64          `json:"memory_mb"`    // Total server memory usage
-	VRAM_MB     float64          `json:"vram_mb"`      // GPU VRAM usage (if available)
+	MemoryMB    float64          `json:"memory_mb"` // Total server memory usage
+	VRAM_MB     float64          `json:"vram_mb"`   // GPU VRAM usage (if available)
 	UptimeStr   string           `json:"uptime"`
 	LastSeen    time.Time        `json:"last_seen"`
 
 	// Metrics
-	TotalRequests    int64   `json:"total_requests"`
-	TokensGenerated  int64   `json:"tokens_generated"`
-	TokensPerSec     float64 `json:"tokens_per_sec"`
-	AvgLatencyMs     int64   `json:"avg_latency_ms"`
-	ActiveConnections int    `json:"active_connections"`
+	TotalRequests     int64   `json:"total_requests"`
+	TokensGenerated   int64   `json:"tokens_generated"`
+	TokensPerSec      float64 `json:"tokens_per_sec"`
+	AvgLatencyMs      int64   `json:"avg_latency_ms"`
+	ActiveConnections int     `json:"active_connections"`
 }
 
 // LocalModel represents a single model available on a local server
 type LocalModel struct {
-	Name       string  `json:"name"`        // e.g., "llama3.2:latest"
-	Size       string  `json:"size"`        // e.g., "4.7 GB"
+	Name       string  `json:"name"` // e.g., "llama3.2:latest"
+	Size       string  `json:"size"` // e.g., "4.7 GB"
 	SizeBytes  int64   `json:"size_bytes"`
 	QuantLevel string  `json:"quant_level"` // e.g., "Q4_K_M"
 	Family     string  `json:"family"`      // e.g., "llama"

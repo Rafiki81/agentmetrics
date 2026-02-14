@@ -31,6 +31,8 @@ AgentMetrics automatically detects and monitors AI coding agents running on your
 | **File Operations** | Tracks file reads/writes in the working directory |
 | **Alert System** | Configurable thresholds for CPU, memory, tokens, cost, and idle time |
 | **Security Monitoring** | Detects dangerous commands, sensitive file access, privilege escalation, code injection, and suspicious network activity |
+| **Local Model Monitoring** | Auto-detects and monitors Ollama, LM Studio, llama.cpp, vLLM, LocalAI, text-generation-webui, GPT4All |
+| **Clickable File Paths** | Cmd+click on file paths in security events to open them directly (OSC 8 terminal hyperlinks) |
 | **History & Export** | Export metrics to JSON or CSV; historical session data |
 | **Tokyo Night Theme** | Beautiful dark terminal UI with the Tokyo Night color palette |
 
@@ -203,7 +205,8 @@ agentmetrics config path
     "show_files": true,
     "show_session": true,
     "show_alerts": true,
-    "show_security": true
+    "show_security": true,
+    "show_local_models": true
   },
   "keybindings": {
     "quit": "q",
@@ -240,6 +243,10 @@ agentmetrics config path
     "shell_persistence_files": [".bashrc", ".zshrc", ".profile", "LaunchAgents/", "..."],
     "mass_deletion_threshold": 10,
     "max_events": 500
+  },
+  "local_models": {
+    "enabled": true,
+    "endpoints": []
   }
 }
 ```
@@ -257,6 +264,7 @@ agentmetrics config path
 | `keybindings` | Customize all keyboard shortcuts |
 | `monitor` | Subsystem limits (max file ops, terminal commands, log lines) |
 | `security` | Security monitoring rules — dangerous commands, sensitive files, network, escalation |
+| `local_models` | Local model server monitoring — auto-detect + custom endpoints |
 
 ### Alert Thresholds
 
@@ -301,6 +309,41 @@ The `security` section provides real-time detection of unsafe agent behavior:
 
 All rules are fully configurable. Set `block_dangerous_commands: true` to flag events as blocked.
 
+Security events in the TUI include **clickable file paths** — hold `Cmd` and click on any file path to open it directly in Finder (via OSC 8 terminal hyperlinks).
+
+### 🖥️ Local Model Monitoring
+
+AgentMetrics auto-detects and monitors local AI model servers running on your machine:
+
+| Server | Default Port | Detection Method |
+|--------|-------------|-----------------|
+| **Ollama** | 11434 | Native API (`/api/tags` + `/api/ps`) — full model info, VRAM usage |
+| **LM Studio** | 1234 | OpenAI-compatible (`/v1/models`) |
+| **llama.cpp** | 8080 | OpenAI-compatible (`/v1/models`) |
+| **vLLM** | 8000 | OpenAI-compatible (`/v1/models`) |
+| **LocalAI** | 8080 | OpenAI-compatible (`/v1/models`) |
+| **text-generation-webui** | 5000 | OpenAI-compatible (`/v1/models`) |
+| **GPT4All** | 4891 | OpenAI-compatible (`/v1/models`) |
+
+The dashboard displays:
+- **Server status** — running/stopped indicator per server
+- **Active model** — currently loaded model name
+- **Resources** — CPU, memory (MB), VRAM (MB) usage
+- **Model list** — available models with sizes and quantization levels
+
+You can also add **custom endpoints** in the config:
+
+```json
+{
+  "local_models": {
+    "enabled": true,
+    "endpoints": [
+      { "name": "My Server", "id": "custom1", "url": "http://localhost:9090" }
+    ]
+  }
+}
+```
+
 ## 🏗️ Architecture
 
 ```
@@ -323,6 +366,7 @@ agentmetrics/
 │   │   ├── session.go       # Session timing & uptime
 │   │   ├── alerts.go        # Alert system with thresholds
 │   │   ├── security.go      # Security monitoring & threat detection
+│   │   ├── localmodels.go   # Local model server auto-detection & monitoring
 │   │   └── history.go       # History storage & export
 │   ├── tui/
 │   │   ├── app.go           # Bubble Tea model (Init/Update/View)
@@ -347,7 +391,8 @@ agentmetrics/
 3. **Cost Estimation** — Maps detected models to pricing tables and calculates running cost
 4. **Alerts** — Evaluates metrics against configurable thresholds
 5. **Security** — Analyzes commands, file ops, and network for unsafe behavior
-6. **Rendering** — Displays everything in a real-time Bubble Tea TUI with Tokyo Night styling
+6. **Local Models** — Probes known local model servers (Ollama, LM Studio, llama.cpp, vLLM, LocalAI, text-generation-webui, GPT4All) via HTTP APIs to collect status, loaded models, and resource usage
+7. **Rendering** — Displays everything in a real-time Bubble Tea TUI with Tokyo Night styling. Security events include clickable file paths (OSC 8 hyperlinks) for quick navigation
 
 ### Token Data Sources
 
@@ -393,6 +438,7 @@ make help
 | **Files** | Recent file operations (read/write/create) |
 | **Alerts** | CPU, memory, token, cost, and idle alerts |
 | **Security** | Dangerous commands, privilege escalation, sensitive files, suspicious network |
+| **Local Models** | Server status, active model, CPU/MEM/VRAM usage, available models with sizes |
 
 ## 📄 License
 

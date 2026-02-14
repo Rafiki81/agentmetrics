@@ -101,20 +101,20 @@ func NewModel(cfg *config.Config) Model {
 	styles := NewStyles(cfg.Theme)
 
 	return Model{
-		detector:   detector,
-		fileMon:    fileMon,
-		netMon:     netMon,
-		procMon:    procMon,
-		tokenMon:   tokenMon,
-		gitMon:     gitMon,
-		termMon:    termMon,
-		sessionMon: sessionMon,
+		detector:      detector,
+		fileMon:       fileMon,
+		netMon:        netMon,
+		procMon:       procMon,
+		tokenMon:      tokenMon,
+		gitMon:        gitMon,
+		termMon:       termMon,
+		sessionMon:    sessionMon,
 		alertMon:      alertMon,
 		secMon:        secMon,
 		localModelMon: localModelMon,
 		history:       history,
-		config:     cfg,
-		styles:     styles,
+		config:        cfg,
+		styles:        styles,
 	}
 }
 
