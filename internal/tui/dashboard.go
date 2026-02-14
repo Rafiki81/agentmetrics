@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
@@ -151,16 +152,13 @@ func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.
 		}
 		for _, evt := range secEvents[start:] {
 			icon, style := securitySeverityStyle(evt.Severity, s)
-			detail := evt.Detail
-			if len(detail) > 50 {
-				detail = detail[:47] + "..."
-			}
+			linkedDetail := securityDetailWithLink(evt.Detail, 50)
 			b.WriteString(fmt.Sprintf("  %s %s %s %s — %s\n",
 				lipgloss.NewStyle().Foreground(s.Theme.Muted).Render(evt.Timestamp.Format("15:04:05")),
 				style.Render(icon),
 				style.Render(fmt.Sprintf("[%-8s]", evt.Severity)),
 				style.Render(evt.Description),
-				lipgloss.NewStyle().Foreground(s.Theme.Muted).Italic(true).Render(detail),
+				lipgloss.NewStyle().Foreground(s.Theme.Muted).Italic(true).Render(linkedDetail),
 			))
 		}
 		b.WriteString("\n")
@@ -560,10 +558,7 @@ func RenderDetail(a agent.AgentInstance, fileOps []agent.FileOperation, alerts [
 			}
 			for _, evt := range agentSec[start:] {
 				icon, st := securitySeverityStyle(evt.Severity, s)
-				detail := evt.Detail
-				if len(detail) > 60 {
-					detail = detail[:57] + "..."
-				}
+				linkedDetail := securityDetailWithLink(evt.Detail, 60)
 				blocked := ""
 				if evt.Blocked {
 					blocked = s.SecurityCritical.Render(" [BLOCKED]")
@@ -572,7 +567,7 @@ func RenderDetail(a agent.AgentInstance, fileOps []agent.FileOperation, alerts [
 					lipgloss.NewStyle().Foreground(s.Theme.Muted).Render(evt.Timestamp.Format("15:04:05")),
 					st.Render(icon),
 					st.Render(evt.Description),
-					lipgloss.NewStyle().Foreground(s.Theme.Muted).Italic(true).Render(detail),
+					lipgloss.NewStyle().Foreground(s.Theme.Muted).Italic(true).Render(linkedDetail),
 					blocked,
 				))
 			}
@@ -653,4 +648,32 @@ func securitySeverityStyle(sev agent.SecuritySeverity, s *Styles) (string, lipgl
 	default:
 		return "•", lipgloss.NewStyle().Foreground(s.Theme.Muted)
 	}
+}
+
+// fileHyperlink wraps a file path in an OSC 8 terminal hyperlink.
+// Command+click (macOS) or Ctrl+click (Linux) opens the file in the default handler.
+// Falls back to plain text if the path doesn't look like an absolute path.
+func fileHyperlink(path string, displayText string) string {
+	if !strings.HasPrefix(path, "/") {
+		return displayText
+	}
+	// Build file:// URL, encoding spaces and special chars in the path
+	fileURL := "file://" + url.PathEscape(path)
+	// Replace %2F back to / since PathEscape encodes them
+	fileURL = strings.ReplaceAll(fileURL, "%2F", "/")
+	// OSC 8 hyperlink: \033]8;;URL\033\\TEXT\033]8;;\033\\
+	return fmt.Sprintf("\033]8;;%s\033\\%s\033]8;;\033\\", fileURL, displayText)
+}
+
+// securityDetailWithLink formats a security event detail, making file paths clickable
+func securityDetailWithLink(detail string, maxLen int) string {
+	display := detail
+	if len(display) > maxLen {
+		display = display[:maxLen-3] + "..."
+	}
+	// If the detail looks like a file path, make it a clickable hyperlink
+	if strings.HasPrefix(detail, "/") {
+		return fileHyperlink(detail, display)
+	}
+	return display
 }
