@@ -14,7 +14,7 @@ import (
 )
 
 // RenderDashboard renders the main dashboard view
-func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.Alert, secEvents []agent.SecurityEvent, width, height int, s *Styles, disp config.DisplayConfig) string {
+func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.Alert, secEvents []agent.SecurityEvent, localModels []agent.LocalModelInfo, width, height int, s *Styles, disp config.DisplayConfig) string {
 	var b strings.Builder
 
 	// Header
@@ -160,6 +160,86 @@ func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.
 				style.Render(evt.Description),
 				lipgloss.NewStyle().Foreground(s.Theme.Muted).Italic(true).Render(linkedDetail),
 			))
+		}
+		b.WriteString("\n")
+	}
+
+	// Local models section
+	if len(localModels) > 0 && disp.ShowLocalModels {
+		b.WriteString(lipgloss.NewStyle().Foreground(s.Theme.Border).Render(strings.Repeat("─", width)) + "\n")
+		b.WriteString(lipgloss.NewStyle().
+			Bold(true).
+			Foreground(s.Theme.Secondary).
+			Width(width).
+			Render("🖥 Local Models") + "\n")
+
+		for _, srv := range localModels {
+			statusColor := s.Theme.Success
+			statusIcon := "●"
+			if srv.Status == agent.LocalModelIdle {
+				statusColor = s.Theme.Warning
+			} else if srv.Status == agent.LocalModelStopped {
+				statusColor = s.Theme.Danger
+				statusIcon = "○"
+			}
+
+			// Server header
+			header := fmt.Sprintf("  %s %s  %s",
+				lipgloss.NewStyle().Foreground(statusColor).Render(statusIcon),
+				lipgloss.NewStyle().Bold(true).Foreground(s.Theme.Primary).Render(srv.ServerName),
+				lipgloss.NewStyle().Foreground(s.Theme.Muted).Render(srv.Endpoint),
+			)
+			b.WriteString(header + "\n")
+
+			// Active model + stats
+			if srv.ActiveModel != "" {
+				modelLine := fmt.Sprintf("    Model: %s",
+					lipgloss.NewStyle().Bold(true).Foreground(s.Theme.Fg).Render(srv.ActiveModel),
+				)
+				b.WriteString(modelLine)
+
+				if srv.CPU > 0 || srv.MemoryMB > 0 {
+					stats := fmt.Sprintf("  CPU: %s  MEM: %s",
+						lipgloss.NewStyle().Foreground(s.Theme.Secondary).Render(fmt.Sprintf("%.1f%%", srv.CPU)),
+						lipgloss.NewStyle().Foreground(s.Theme.Secondary).Render(fmt.Sprintf("%.0f MB", srv.MemoryMB)),
+					)
+					b.WriteString(stats)
+				}
+				if srv.VRAM_MB > 0 {
+					b.WriteString(fmt.Sprintf("  VRAM: %s",
+						lipgloss.NewStyle().Foreground(s.Theme.Warning).Render(fmt.Sprintf("%.0f MB", srv.VRAM_MB)),
+					))
+				}
+				b.WriteString("\n")
+			}
+
+			// List available models (compact)
+			if len(srv.Models) > 0 {
+				modelNames := make([]string, 0, len(srv.Models))
+				for _, m := range srv.Models {
+					name := m.Name
+					if m.Running {
+						name = lipgloss.NewStyle().Foreground(s.Theme.Success).Render("▶ " + name)
+					} else {
+						name = lipgloss.NewStyle().Foreground(s.Theme.Muted).Render("  " + name)
+					}
+					if m.Size != "" {
+						name += lipgloss.NewStyle().Foreground(s.Theme.Muted).Render(fmt.Sprintf(" (%s)", m.Size))
+					}
+					modelNames = append(modelNames, name)
+				}
+				maxModels := 5
+				for i, name := range modelNames {
+					if i >= maxModels {
+						remaining := len(modelNames) - maxModels
+						b.WriteString(fmt.Sprintf("    %s\n",
+							lipgloss.NewStyle().Foreground(s.Theme.Muted).Render(fmt.Sprintf("... +%d more", remaining)),
+						))
+						break
+					}
+					b.WriteString(fmt.Sprintf("    %s\n", name))
+				}
+			}
 		}
 		b.WriteString("\n")
 	}

@@ -20,22 +20,24 @@ const (
 // Model is the main Bubble Tea model
 type Model struct {
 	// Data
-	agents     []agent.AgentInstance
-	detector   *agent.Detector
-	fileMon    *monitor.FileWatcher
-	netMon     *monitor.NetworkMonitor
-	procMon    *monitor.ProcessMonitor
-	tokenMon   *monitor.TokenMonitor
-	gitMon     *monitor.GitMonitor
-	termMon    *monitor.TerminalMonitor
-	sessionMon *monitor.SessionMonitor
-	alertMon   *monitor.AlertMonitor
-	secMon     *monitor.SecurityMonitor
-	history    *monitor.HistoryStore
-	config     *config.Config
-	styles     *Styles
-	alerts     []agent.Alert
-	secEvents  []agent.SecurityEvent
+	agents        []agent.AgentInstance
+	detector      *agent.Detector
+	fileMon       *monitor.FileWatcher
+	netMon        *monitor.NetworkMonitor
+	procMon       *monitor.ProcessMonitor
+	tokenMon      *monitor.TokenMonitor
+	gitMon        *monitor.GitMonitor
+	termMon       *monitor.TerminalMonitor
+	sessionMon    *monitor.SessionMonitor
+	alertMon      *monitor.AlertMonitor
+	secMon        *monitor.SecurityMonitor
+	localModelMon *monitor.LocalModelMonitor
+	history       *monitor.HistoryStore
+	config        *config.Config
+	styles        *Styles
+	alerts        []agent.Alert
+	secEvents     []agent.SecurityEvent
+	localModels   []agent.LocalModelInfo
 
 	// UI state
 	currentView View
@@ -88,6 +90,9 @@ func NewModel(cfg *config.Config) Model {
 	// Security monitor from config
 	secMon := monitor.NewSecurityMonitor(cfg.Security)
 
+	// Local model monitor
+	localModelMon := monitor.NewLocalModelMonitor(cfg.LocalModels)
+
 	// History store from config
 	histDir := cfg.Export.Directory
 	history := monitor.NewHistoryStore(histDir, cfg.Export.MaxHistory)
@@ -104,9 +109,10 @@ func NewModel(cfg *config.Config) Model {
 		gitMon:     gitMon,
 		termMon:    termMon,
 		sessionMon: sessionMon,
-		alertMon:   alertMon,
-		secMon:     secMon,
-		history:    history,
+		alertMon:      alertMon,
+		secMon:        secMon,
+		localModelMon: localModelMon,
+		history:       history,
 		config:     cfg,
 		styles:     styles,
 	}
@@ -201,6 +207,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Record history
 			m.history.Record(m.agents)
+
+			// Collect local model server info
+			if m.config.LocalModels.Enabled {
+				m.localModels = m.localModelMon.Collect()
+			}
 		}
 		return m, nil
 	}
@@ -221,9 +232,9 @@ func (m Model) View() string {
 			return RenderDetail(a, a.FileOps, m.alerts, m.secEvents, m.width, m.height, m.styles, m.config.Display)
 		}
 		m.currentView = ViewDashboard
-		return RenderDashboard(m.agents, m.selected, m.alerts, m.secEvents, m.width, m.height, m.styles, m.config.Display)
+		return RenderDashboard(m.agents, m.selected, m.alerts, m.secEvents, m.localModels, m.width, m.height, m.styles, m.config.Display)
 	default:
-		return RenderDashboard(m.agents, m.selected, m.alerts, m.secEvents, m.width, m.height, m.styles, m.config.Display)
+		return RenderDashboard(m.agents, m.selected, m.alerts, m.secEvents, m.localModels, m.width, m.height, m.styles, m.config.Display)
 	}
 }
 

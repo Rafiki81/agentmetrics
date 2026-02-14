@@ -42,15 +42,16 @@ func (d Duration) Duration() time.Duration {
 
 // Config holds the full application configuration
 type Config struct {
-	RefreshInterval Duration        `json:"refresh_interval"`
-	Detection       DetectionConfig `json:"detection"`
-	Alerts          AlertConfig     `json:"alerts"`
-	Security        SecurityConfig  `json:"security"`
-	Theme           ThemeConfig     `json:"theme"`
-	Export          ExportConfig    `json:"export"`
-	Display         DisplayConfig   `json:"display"`
-	Keybindings     KeyConfig       `json:"keybindings"`
-	Monitor         MonitorConfig   `json:"monitor"`
+	RefreshInterval Duration          `json:"refresh_interval"`
+	Detection       DetectionConfig   `json:"detection"`
+	Alerts          AlertConfig       `json:"alerts"`
+	Security        SecurityConfig    `json:"security"`
+	LocalModels     LocalModelsConfig `json:"local_models"`
+	Theme           ThemeConfig       `json:"theme"`
+	Export          ExportConfig      `json:"export"`
+	Display         DisplayConfig     `json:"display"`
+	Keybindings     KeyConfig         `json:"keybindings"`
+	Monitor         MonitorConfig     `json:"monitor"`
 }
 
 // DetectionConfig controls how agents are detected
@@ -109,8 +110,9 @@ type DisplayConfig struct {
 	ShowNetwork  bool `json:"show_network"`
 	ShowFiles    bool `json:"show_files"`
 	ShowSession  bool `json:"show_session"`
-	ShowAlerts   bool `json:"show_alerts"`
-	ShowSecurity bool `json:"show_security"`
+	ShowAlerts      bool `json:"show_alerts"`
+	ShowSecurity    bool `json:"show_security"`
+	ShowLocalModels bool `json:"show_local_models"`
 }
 
 // KeyConfig controls keyboard shortcuts
@@ -131,6 +133,19 @@ type MonitorConfig struct {
 	MaxFileOps      int      `json:"max_file_ops"`
 	MaxTermCommands int      `json:"max_terminal_commands"`
 	WatchDirs       []string `json:"watch_dirs"`
+}
+
+// LocalModelsConfig controls local model server monitoring
+type LocalModelsConfig struct {
+	Enabled   bool                    `json:"enabled"`
+	Endpoints []LocalModelEndpoint    `json:"endpoints"` // Custom endpoints beyond auto-detection
+}
+
+// LocalModelEndpoint defines a custom local model server
+type LocalModelEndpoint struct {
+	Name string `json:"name"` // Display name
+	ID   string `json:"id"`   // Unique identifier
+	URL  string `json:"url"`  // e.g. "http://localhost:11434"
 }
 
 // SecurityConfig controls security monitoring and alerting
@@ -510,8 +525,9 @@ func DefaultConfig() *Config {
 			ShowNetwork:  true,
 			ShowFiles:    true,
 			ShowSession:  true,
-			ShowAlerts:   true,
-			ShowSecurity: true,
+			ShowAlerts:      true,
+			ShowSecurity:    true,
+			ShowLocalModels: true,
 		},
 
 		Keybindings: KeyConfig{
@@ -530,6 +546,11 @@ func DefaultConfig() *Config {
 			MaxFileOps:      200,
 			MaxTermCommands: 50,
 			WatchDirs:       []string{},
+		},
+
+		LocalModels: LocalModelsConfig{
+			Enabled:   true,
+			Endpoints: []LocalModelEndpoint{},
 		},
 	}
 }
