@@ -55,6 +55,33 @@ AgentMetrics automatically detects and monitors AI coding agents running on your
 
 ## 📦 Installation
 
+### From GitHub Releases (recommended)
+
+Download the latest binary from [**Releases**](https://github.com/Rafiki81/agentmetrics/releases):
+
+```bash
+# macOS (Apple Silicon)
+curl -Lo agentmetrics.tar.gz https://github.com/Rafiki81/agentmetrics/releases/latest/download/agentmetrics_darwin_arm64.tar.gz
+tar xzf agentmetrics.tar.gz
+sudo mv agentmetrics /usr/local/bin/
+
+# macOS (Intel)
+curl -Lo agentmetrics.tar.gz https://github.com/Rafiki81/agentmetrics/releases/latest/download/agentmetrics_darwin_amd64.tar.gz
+tar xzf agentmetrics.tar.gz
+sudo mv agentmetrics /usr/local/bin/
+
+# Linux (amd64)
+curl -Lo agentmetrics.tar.gz https://github.com/Rafiki81/agentmetrics/releases/latest/download/agentmetrics_linux_amd64.tar.gz
+tar xzf agentmetrics.tar.gz
+sudo mv agentmetrics /usr/local/bin/
+```
+
+### With `go install`
+
+```bash
+go install github.com/rafaelperezbeato/agentmetrics/cmd/agentmetrics@latest
+```
+
 ### From source
 
 ```bash
@@ -71,8 +98,8 @@ make install
 
 ### Prerequisites
 
-- **Go 1.24+**
-- **macOS** (uses `ps`, `lsof`, `pgrep` for process inspection)
+- **Go 1.24+** (only for building from source)
+- **macOS** or **Linux** (uses `ps`, `lsof`, `pgrep` for process inspection)
 
 ## 🎯 Usage
 

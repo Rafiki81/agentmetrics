@@ -1,0 +1,60 @@
+version: 2
+
+project_name: agentmetrics
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: agentmetrics
+    main: ./cmd/agentmetrics
+    binary: agentmetrics
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - "Merge pull request"
+      - "Merge branch"
+
+release:
+  github:
+    owner: Rafiki81
+    name: agentmetrics
+  name_template: "v{{.Version}}"
+  draft: false
+  prerelease: auto
+  header: |
+    ## AgentMetrics v{{.Version}}
+
+    Real-time terminal dashboard for monitoring local AI coding agents.
+  footer: |
+    ---
+    **Full Changelog**: https://github.com/Rafiki81/agentmetrics/compare/{{ .PreviousTag }}...{{ .Tag }}

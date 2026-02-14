@@ -50,6 +50,22 @@ deps:
 	go mod tidy
 	go mod download
 
+## release-dry: Test release process locally (requires goreleaser)
+release-dry:
+	goreleaser release --snapshot --clean
+
+## release: Create a new release (usage: make release V=0.2.0)
+release:
+	@if [ -z "$(V)" ]; then echo "❌ Usage: make release V=0.2.0"; exit 1; fi
+	@echo "🏷️  Tagging v$(V)..."
+	@sed -i '' 's/^VERSION=.*/VERSION=$(V)/' Makefile
+	@sed -i '' 's/const version = ".*"/const version = "$(V)"/' cmd/agentmetrics/main.go
+	git add -A
+	git commit -m "release: v$(V)"
+	git tag -a "v$(V)" -m "Release v$(V)"
+	git push origin main "v$(V)"
+	@echo "✅ Release v$(V) pushed — GitHub Actions will build and publish binaries"
+
 ## help: Show this help
 help:
 	@echo "◈ AgentMetrics — Available commands:"
