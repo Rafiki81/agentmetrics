@@ -146,6 +146,14 @@ const (
 	SecCatSystemModify     SecurityCategory = "system_modify"      // crontab, launchctl, systemctl
 	SecCatCodeInjection    SecurityCategory = "code_injection"     // eval, exec of remote code
 	SecCatSuspiciousNet    SecurityCategory = "suspicious_network" // connections to unknown hosts
+	SecCatReverseShell     SecurityCategory = "reverse_shell"      // reverse shell attempts
+	SecCatObfuscation      SecurityCategory = "obfuscation"        // base64/hex encoded commands
+	SecCatContainerEscape  SecurityCategory = "container_escape"   // docker --privileged, nsenter
+	SecCatEnvManipulation  SecurityCategory = "env_manipulation"   // PATH, LD_PRELOAD hijacking
+	SecCatCredentialAccess SecurityCategory = "credential_access"  // keychain, browser passwords
+	SecCatLogTampering     SecurityCategory = "log_tampering"      // history -c, shred logs
+	SecCatRemoteAccess     SecurityCategory = "remote_access"      // ssh, scp, rsync outbound
+	SecCatShellPersistence SecurityCategory = "shell_persistence"  // .bashrc/.zshrc modification
 )
 
 // SecuritySeverity indicates how dangerous the event is

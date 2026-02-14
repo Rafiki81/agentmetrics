@@ -53,6 +53,9 @@ func (sm *SecurityMonitor) CheckAgent(a *agent.AgentInstance) {
 	// 3. Check network connections
 	sm.checkNetwork(a)
 
+	// 4. Check for file-based persistence & credential access
+	sm.checkFileSecurity(a)
+
 	// Update agent's security events
 	a.SecurityEvents = sm.getEventsForAgent(a.Info.ID)
 }
@@ -128,6 +131,108 @@ func (sm *SecurityMonitor) checkCommands(a *agent.AgentInstance) {
 					Detail:      cmd.Command,
 					Rule:        "package_install:unverified",
 				})
+			}
+		}
+
+		// Check reverse shell patterns
+		for _, pattern := range sm.config.ReverseShellPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatReverseShell,
+					Severity:    agent.SecSevCritical,
+					Description: "Reverse shell attempt detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("reverse_shell:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check obfuscated commands
+		for _, pattern := range sm.config.ObfuscationPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatObfuscation,
+					Severity:    agent.SecSevHigh,
+					Description: "Obfuscated/encoded command detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("obfuscation:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check container escape patterns
+		for _, pattern := range sm.config.ContainerEscapePatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatContainerEscape,
+					Severity:    agent.SecSevCritical,
+					Description: "Container escape attempt detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("container_escape:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check environment variable manipulation
+		for _, pattern := range sm.config.EnvManipulationPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatEnvManipulation,
+					Severity:    agent.SecSevHigh,
+					Description: "Environment variable manipulation",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("env_manipulation:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check credential/keychain access
+		for _, pattern := range sm.config.CredentialAccessPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatCredentialAccess,
+					Severity:    agent.SecSevCritical,
+					Description: "Credential/keychain access detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("credential_access:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check log/history tampering
+		for _, pattern := range sm.config.LogTamperingPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatLogTampering,
+					Severity:    agent.SecSevHigh,
+					Description: "Log/history tampering detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("log_tampering:%s", pattern),
+				})
+				break
+			}
+		}
+
+		// Check remote access commands
+		for _, pattern := range sm.config.RemoteAccessPatterns {
+			if strings.Contains(cmdLower, strings.ToLower(pattern)) {
+				// Skip if it's just "ssh-agent" or "ssh-add" (common dev tools)
+				if strings.Contains(cmdLower, "ssh-agent") || strings.Contains(cmdLower, "ssh-add") {
+					continue
+				}
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatRemoteAccess,
+					Severity:    agent.SecSevHigh,
+					Description: "Remote access command detected",
+					Detail:      cmd.Command,
+					Rule:        fmt.Sprintf("remote_access:%s", pattern),
+				})
+				break
 			}
 		}
 	}
@@ -231,6 +336,43 @@ func (sm *SecurityMonitor) checkNetwork(a *agent.AgentInstance) {
 				Detail:      fmt.Sprintf("%s -> %s [%s]", conn.LocalAddr, conn.RemoteAddr, conn.Protocol),
 				Rule:        "unusual_port",
 			})
+		}
+	}
+}
+
+// checkFileSecurity checks file operations for persistence and credential access
+func (sm *SecurityMonitor) checkFileSecurity(a *agent.AgentInstance) {
+	for _, op := range a.FileOps {
+		pathLower := strings.ToLower(op.Path)
+
+		// Check shell persistence (writing to shell config files)
+		if op.Op == "MODIFY" || op.Op == "CREATE" {
+			for _, pattern := range sm.config.ShellPersistenceFiles {
+				if strings.Contains(pathLower, strings.ToLower(pattern)) {
+					sm.addEvent(a, agent.SecurityEvent{
+						Category:    agent.SecCatShellPersistence,
+						Severity:    agent.SecSevMedium,
+						Description: fmt.Sprintf("Shell config %s: %s", strings.ToLower(op.Op), pattern),
+						Detail:      op.Path,
+						Rule:        fmt.Sprintf("shell_persistence:%s", pattern),
+					})
+					break
+				}
+			}
+		}
+
+		// Check credential file access via file operations
+		for _, pattern := range sm.config.CredentialAccessPatterns {
+			if strings.Contains(pathLower, strings.ToLower(pattern)) {
+				sm.addEvent(a, agent.SecurityEvent{
+					Category:    agent.SecCatCredentialAccess,
+					Severity:    agent.SecSevCritical,
+					Description: fmt.Sprintf("Credential file access: %s", op.Op),
+					Detail:      op.Path,
+					Rule:        fmt.Sprintf("credential_file:%s", pattern),
+				})
+				break
+			}
 		}
 	}
 }

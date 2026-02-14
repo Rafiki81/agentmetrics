@@ -152,6 +152,22 @@ type SecurityConfig struct {
 	CodeInjectionPatterns []string `json:"code_injection_patterns"`
 	// System modification commands
 	SystemModifyCommands []string `json:"system_modify_commands"`
+	// Reverse shell patterns
+	ReverseShellPatterns []string `json:"reverse_shell_patterns"`
+	// Obfuscation patterns (base64, hex encoding)
+	ObfuscationPatterns []string `json:"obfuscation_patterns"`
+	// Container escape patterns (docker --privileged, nsenter)
+	ContainerEscapePatterns []string `json:"container_escape_patterns"`
+	// Environment variable manipulation patterns
+	EnvManipulationPatterns []string `json:"env_manipulation_patterns"`
+	// Credential/keychain access patterns
+	CredentialAccessPatterns []string `json:"credential_access_patterns"`
+	// Log/history tampering patterns
+	LogTamperingPatterns []string `json:"log_tampering_patterns"`
+	// Remote access patterns (ssh, scp, rsync)
+	RemoteAccessPatterns []string `json:"remote_access_patterns"`
+	// Shell persistence patterns (.bashrc, .zshrc modification)
+	ShellPersistenceFiles []string `json:"shell_persistence_files"`
 	// Mass deletion threshold (number of deletes in one scan)
 	MassDeletionThreshold int `json:"mass_deletion_threshold"`
 	// Max security events to store
@@ -310,6 +326,161 @@ func DefaultConfig() *Config {
 
 			MassDeletionThreshold: 10,
 			MaxEvents:             500,
+
+			ReverseShellPatterns: []string{
+				"bash -i >& /dev/tcp/",
+				"bash -i >&/dev/tcp/",
+				"sh -i >& /dev/tcp/",
+				"/dev/tcp/",
+				"/dev/udp/",
+				"nc -e /bin/",
+				"nc -e /bin/sh",
+				"ncat -e ",
+				"ncat --exec",
+				"mkfifo /tmp/",
+				"socat exec:",
+				"socat tcp:",
+				"python -c 'import socket",
+				"python3 -c 'import socket",
+				"ruby -rsocket",
+				"php -r '$sock=fsockopen",
+				"perl -e 'use Socket",
+				"openssl s_client",
+				"telnet ",
+			},
+
+			ObfuscationPatterns: []string{
+				"base64 --decode",
+				"base64 -d",
+				"base64 -D",
+				"| base64",
+				"echo.*|.*base64",
+				"xxd -r",
+				"xxd -p",
+				"printf '\\x",
+				"\\x$(printf",
+				"python -c \"exec(",
+				"python3 -c \"exec(",
+				"echo.*|.*rev",
+				"eval \"$(echo",
+				"eval $(echo",
+			},
+
+			ContainerEscapePatterns: []string{
+				"docker run --privileged",
+				"docker run -v /:/",
+				"docker.sock",
+				"-v /var/run/docker.sock",
+				"--cap-add=SYS_ADMIN",
+				"--cap-add=ALL",
+				"--cap-add SYS_ADMIN",
+				"--cap-add ALL",
+				"nsenter ",
+				"nsenter -t 1",
+				"docker exec --privileged",
+				"--pid=host",
+				"--net=host --privileged",
+				"runc exec",
+				"ctr run",
+			},
+
+			EnvManipulationPatterns: []string{
+				"export PATH=",
+				"export LD_PRELOAD=",
+				"export LD_LIBRARY_PATH=",
+				"export DYLD_INSERT_LIBRARIES=",
+				"export DYLD_LIBRARY_PATH=",
+				"export PYTHONPATH=",
+				"export NODE_PATH=",
+				"export RUBYLIB=",
+				"export PERL5LIB=",
+				"export GOPATH=",
+				"export http_proxy=",
+				"export https_proxy=",
+				"export HTTP_PROXY=",
+				"export HTTPS_PROXY=",
+				"unset SSL_CERT",
+				"export NODE_TLS_REJECT_UNAUTHORIZED=0",
+				"export GIT_SSL_NO_VERIFY=",
+				"export CURL_CA_BUNDLE=",
+			},
+
+			CredentialAccessPatterns: []string{
+				"security find-generic-password",
+				"security find-internet-password",
+				"security dump-keychain",
+				"security export -k",
+				"secret-tool lookup",
+				"secret-tool search",
+				"gnome-keyring",
+				"kwallet",
+				"pass show",
+				"gopass show",
+				"Login Data",       // Chrome passwords
+				"cookies.sqlite",   // Firefox cookies
+				"logins.json",      // Firefox passwords
+				"Web Data",         // Chrome autofill
+				"Local State",      // Chrome encryption key
+				"Cookies",          // Chrome cookies
+				"chrome/Default",   // Chrome profile
+				"firefox/Profiles", // Firefox profile
+			},
+
+			LogTamperingPatterns: []string{
+				"history -c",
+				"history -w",
+				"history -d",
+				"> ~/.bash_history",
+				"> ~/.zsh_history",
+				"> ~/.python_history",
+				"rm ~/.bash_history",
+				"rm ~/.zsh_history",
+				"rm -f ~/.bash_history",
+				"rm -f ~/.zsh_history",
+				"unset HISTFILE",
+				"unset HISTSIZE",
+				"export HISTSIZE=0",
+				"export HISTFILESIZE=0",
+				"set +o history",
+				"shred ",
+				"wipe ",
+				"srm ",
+				"truncate -s 0",
+				"cat /dev/null >",
+			},
+
+			RemoteAccessPatterns: []string{
+				"ssh ",
+				"ssh -L",
+				"ssh -R",
+				"ssh -D",
+				"ssh -W",
+				"scp ",
+				"rsync ",
+				"sftp ",
+				"rdesktop ",
+				"xfreerdp ",
+				"autossh",
+				"mosh ",
+			},
+
+			ShellPersistenceFiles: []string{
+				".bashrc",
+				".bash_profile",
+				".bash_login",
+				".profile",
+				".zshrc",
+				".zprofile",
+				".zlogin",
+				".zshenv",
+				".config/fish/config.fish",
+				".login",
+				".cshrc",
+				"Library/LaunchAgents/",
+				".config/autostart/",
+				"cron.d/",
+				"cron.daily/",
+			},
 		},
 
 		Theme: ThemeConfig{

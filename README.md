@@ -224,34 +224,20 @@ agentmetrics config path
   "security": {
     "enabled": true,
     "block_dangerous_commands": false,
-    "dangerous_commands": [
-      "rm -rf /", "rm -rf ~", "rm -rf *", "mkfs.", "dd if=",
-      ":(){:|:&};:", "> /dev/sda", "chmod -R 777", "chmod 777",
-      "wget.*|.*sh", "curl.*|.*sh", "curl.*|.*bash"
-    ],
-    "sensitive_files": [
-      ".env", ".ssh/", "id_rsa", "id_ed25519",
-      ".aws/credentials", ".gnupg/", ".npmrc",
-      ".docker/config.json", ".kube/config", ".git-credentials",
-      "terraform.tfvars", ".pgpass"
-    ],
-    "suspicious_hosts": [
-      "pastebin.com", "requestbin.com", "ngrok.io",
-      "burpcollaborator.net", "interact.sh"
-    ],
-    "allowed_registries": [],
-    "escalation_commands": [
-      "sudo ", "su -", "su root", "doas ", "pkexec ",
-      "chown root", "chmod u+s"
-    ],
-    "code_injection_patterns": [
-      "eval(", "exec(", "os.system(", "subprocess.call(",
-      "child_process.exec(", "| bash", "| sh", "$(curl ", "$(wget "
-    ],
-    "system_modify_commands": [
-      "crontab", "launchctl", "systemctl enable",
-      "visudo", "usermod", "iptables", "defaults write"
-    ],
+    "dangerous_commands": ["rm -rf /", "rm -rf ~", "mkfs.", "dd if=", ":(){:|:&};:", "chmod 777", "..."],
+    "sensitive_files": [".env", ".ssh/", "id_rsa", ".aws/credentials", ".kube/config", "..."],
+    "suspicious_hosts": ["pastebin.com", "ngrok.io", "interact.sh", "..."],
+    "escalation_commands": ["sudo ", "su root", "pkexec ", "chmod u+s", "..."],
+    "code_injection_patterns": ["eval(", "exec(", "| bash", "$(curl ", "..."],
+    "system_modify_commands": ["crontab", "launchctl", "iptables", "visudo", "..."],
+    "reverse_shell_patterns": ["bash -i >& /dev/tcp/", "nc -e /bin/", "socat exec:", "mkfifo /tmp/", "..."],
+    "obfuscation_patterns": ["base64 --decode", "base64 -d", "xxd -r", "printf '\\x", "..."],
+    "container_escape_patterns": ["docker run --privileged", "docker.sock", "--cap-add=ALL", "nsenter ", "..."],
+    "env_manipulation_patterns": ["export LD_PRELOAD=", "export DYLD_INSERT_LIBRARIES=", "export PATH=", "..."],
+    "credential_access_patterns": ["security find-generic-password", "security dump-keychain", "Login Data", "..."],
+    "log_tampering_patterns": ["history -c", "> ~/.zsh_history", "unset HISTFILE", "shred ", "..."],
+    "remote_access_patterns": ["ssh ", "scp ", "rsync ", "ssh -L", "ssh -R", "..."],
+    "shell_persistence_files": [".bashrc", ".zshrc", ".profile", "LaunchAgents/", "..."],
     "mass_deletion_threshold": 10,
     "max_events": 500
   }
@@ -295,14 +281,22 @@ The `security` section provides real-time detection of unsafe agent behavior:
 | Category | What it detects | Severity |
 |----------|----------------|----------|
 | **Dangerous commands** | `rm -rf /`, `mkfs.`, fork bombs, `dd if=`, `chmod 777` | 🚨 CRITICAL |
+| **Reverse shell** | `bash -i >& /dev/tcp/`, `nc -e`, `socat`, `mkfifo` | 🚨 CRITICAL |
+| **Container escape** | `docker --privileged`, `-v /:/host`, `nsenter`, `--cap-add=ALL` | 🚨 CRITICAL |
+| **Credential access** | macOS Keychain (`security find-*`), browser passwords, `pass show` | 🚨 CRITICAL |
 | **Privilege escalation** | `sudo`, `su root`, `pkexec`, `chmod u+s` | 🔴 HIGH |
 | **Code injection** | `eval()`, `curl \| bash`, `$(wget ...)`, `exec()` | 🔴 HIGH |
+| **Obfuscated commands** | `base64 --decode \| bash`, `xxd -r`, hex-encoded payloads | 🔴 HIGH |
+| **Env manipulation** | Modify `PATH`, `LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`, disable TLS validation | 🔴 HIGH |
+| **Log tampering** | `history -c`, `> ~/.zsh_history`, `unset HISTFILE`, `shred` | 🔴 HIGH |
+| **Remote access** | `ssh`, `scp`, `rsync` outbound, port forwarding (`ssh -L/-R/-D`) | 🔴 HIGH |
 | **Sensitive file access** | `.env`, `.ssh/`, `.aws/credentials`, `id_rsa` | 🔴 HIGH |
 | **Mass file deletion** | More than N files deleted in one scan cycle | 🔴 HIGH |
+| **Suspicious network** | Connections to `pastebin.com`, `ngrok.io`, `interact.sh` | 🔴 HIGH |
 | **System modification** | `crontab`, `launchctl`, `iptables`, `visudo` | ⚠️ MEDIUM |
+| **Shell persistence** | Modification of `.bashrc`, `.zshrc`, `.profile`, LaunchAgents | ⚠️ MEDIUM |
 | **Secrets exposure** | Files with `api_key`, `password`, `token` in name | ⚠️ MEDIUM |
 | **Package install** | Installs from unverified registries (when allow-list set) | ⚠️ MEDIUM |
-| **Suspicious network** | Connections to `pastebin.com`, `ngrok.io`, `interact.sh` | 🔴 HIGH |
 | **Unusual ports** | Outbound connections on non-standard ports | ℹ️ LOW |
 
 All rules are fully configurable. Set `block_dangerous_commands: true` to flag events as blocked.
