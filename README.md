@@ -1,10 +1,12 @@
 # ◈ AgentMetrics
 
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://go.dev)
+[![CI](https://github.com/Rafiki81/agentmetrics/actions/workflows/ci.yml/badge.svg)](https://github.com/Rafiki81/agentmetrics/actions/workflows/ci.yml)
+[![Release](https://github.com/Rafiki81/agentmetrics/actions/workflows/release.yml/badge.svg)](https://github.com/Rafiki81/agentmetrics/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey?logo=apple)](https://github.com/rafaelperezbeato/agentmetrics)
-[![Status](https://img.shields.io/badge/Status-Work%20In%20Progress-orange?style=flat)](https://github.com/rafaelperezbeato/agentmetrics)
-[![Testing](https://img.shields.io/badge/Testing-In%20Progress-blueviolet?style=flat)](https://github.com/rafaelperezbeato/agentmetrics)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey?logo=apple)](https://github.com/Rafiki81/agentmetrics)
+[![Status](https://img.shields.io/badge/Status-Work%20In%20Progress-orange?style=flat)](https://github.com/Rafiki81/agentmetrics)
+[![Testing](https://img.shields.io/badge/Testing-In%20Progress-blueviolet?style=flat)](https://github.com/Rafiki81/agentmetrics)
 
 > ⚠️ **Work In Progress** — This project is under active development and currently being tested. Features may change, and bugs are expected. Contributions and feedback are welcome!
 
@@ -401,6 +403,11 @@ agentmetrics/
 │   │   └── styles.go        # Tokyo Night color palette & styles
 │   └── config/
 │       └── config.go        # Configuration management
+├── .github/
+│   └── workflows/
+│       ├── ci.yml           # CI: build + test on push/PR
+│       └── release.yml      # Release: GoReleaser on version tags
+├── .goreleaser.yml          # GoReleaser config (cross-compile + publish)
 ├── Makefile
 ├── go.mod
 └── go.sum
@@ -446,9 +453,41 @@ make lint
 # Download dependencies
 make deps
 
+# Test release locally (requires goreleaser)
+make release-dry
+
+# Create a new release (bumps version, tags, pushes — GitHub Actions builds binaries)
+make release V=0.2.0
+
 # See all available commands
 make help
 ```
+
+### CI/CD
+
+The project uses **GitHub Actions** for continuous integration and automated releases:
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| **CI** | Push/PR to `main` | Build, test, vet |
+| **Release** | Push tag `v*` | Run tests → GoReleaser builds binaries → GitHub Release |
+
+**Creating a release:**
+
+```bash
+# Automated (updates version in code, commits, tags, pushes)
+make release V=0.2.0
+
+# Manual
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+```
+
+GoReleaser generates binaries for:
+- macOS (Apple Silicon + Intel)
+- Linux (amd64 + arm64)
+
+Binaries are published as `.tar.gz` archives in [GitHub Releases](https://github.com/Rafiki81/agentmetrics/releases) with SHA256 checksums.
 
 ## 📊 Monitored Metrics
 
