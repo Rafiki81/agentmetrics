@@ -1,0 +1,21 @@
+# Binaries
+bin/
+*.exe
+
+# Go
+*.test
+*.out
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config
+.agentmetrics/
