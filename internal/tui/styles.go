@@ -1,8 +1,8 @@
 package tui
 
 import (
+	"github.com/Rafiki81/libagentmetrics/config"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/rafaelperezbeato/agentmetrics/internal/config"
 )
 
 // Theme holds resolved lipgloss colors from config

@@ -110,9 +110,6 @@ make install
 ```bash
 # Launch the full dashboard
 agentmetrics
-
-# Or
-agentmetrics tui
 ```
 
 **Keyboard shortcuts:**
@@ -378,31 +375,23 @@ You can also add **custom endpoints** in the config:
 ```
 agentmetrics/
 ├── cmd/agentmetrics/
-│   └── main.go              # CLI entry point & subcommands
+│   └── main.go              # Thin entry point
 ├── internal/
-│   ├── agent/
-│   │   ├── types.go         # Core data types (AgentInstance, TokenInfo, etc.)
-│   │   ├── registry.go      # Agent definitions & detection patterns
-│   │   └── detector.go      # Process scanner & agent discovery
-│   ├── monitor/
-│   │   ├── tokens.go        # Token usage collection (sqlite, logs)
-│   │   ├── cost.go          # Model pricing & cost estimation
-│   │   ├── process.go       # CPU & memory monitoring
-│   │   ├── network.go       # Network connection monitoring
-│   │   ├── filesystem.go    # File operation tracking
-│   │   ├── git.go           # Git activity monitoring
-│   │   ├── terminal.go      # Terminal command capture
-│   │   ├── session.go       # Session timing & uptime
-│   │   ├── alerts.go        # Alert system with thresholds
-│   │   ├── security.go      # Security monitoring & threat detection
-│   │   ├── localmodels.go   # Local model server auto-detection & monitoring
-│   │   └── history.go       # History storage & export
-│   ├── tui/
-│   │   ├── app.go           # Bubble Tea model (Init/Update/View)
-│   │   ├── dashboard.go     # Dashboard & detail view rendering
-│   │   └── styles.go        # Tokyo Night color palette & styles
-│   └── config/
-│       └── config.go        # Configuration management
+│   ├── cli/
+│   │   ├── router.go        # Command routing / exit codes
+│   │   ├── scan_helpers.go  # Shared scan + enrichment helpers
+│   │   ├── cmd_scan.go      # scan command
+│   │   ├── cmd_export.go    # export command
+│   │   ├── cmd_alerts.go    # alerts command
+│   │   ├── cmd_watch.go     # watch command
+│   │   ├── cmd_json.go      # json command
+│   │   ├── commands_config_tui.go # config + TUI launcher
+│   │   └── help.go          # help text
+│   └── tui/
+│       ├── app.go           # Bubble Tea model (Init/Update/View)
+│       ├── dashboard.go     # Dashboard & detail view rendering
+│       └── styles.go        # Tokyo Night color palette & styles
+├── go.mod                   # App module + libagentmetrics dependency
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml           # CI: build + test on push/PR
@@ -415,18 +404,19 @@ agentmetrics/
 
 ### How It Works
 
-1. **Detection** — Scans running processes (`ps aux`) and matches against known agent signatures (process names, command patterns)
-2. **Enrichment** — For each detected agent, collects:
+1. **Library Core** — `github.com/Rafiki81/libagentmetrics` provides detection, monitors, config, and data models
+2. **Detection** — The library scans running processes (`ps aux`) and matches against known agent signatures (process names, command patterns)
+3. **Enrichment** — For each detected agent, the library collects:
    - CPU/Memory via process stats
    - Token data from SQLite databases (e.g., Claude's `~/.claude/` DB) or log files
    - Git status from the agent's working directory
    - Network connections via `lsof`
    - Session timing from process start time
-3. **Cost Estimation** — Maps detected models to pricing tables and calculates running cost
-4. **Alerts** — Evaluates metrics against configurable thresholds
-5. **Security** — Analyzes commands, file ops, and network for unsafe behavior
-6. **Local Models** — Probes known local model servers (Ollama, LM Studio, llama.cpp, vLLM, LocalAI, text-generation-webui, GPT4All) via HTTP APIs to collect status, loaded models, and resource usage
-7. **Rendering** — Displays everything in a real-time Bubble Tea TUI with Tokyo Night styling. Security events include clickable file paths (OSC 8 hyperlinks) for quick navigation
+4. **Cost Estimation** — The library maps detected models to pricing tables and calculates running cost
+5. **Alerts** — The library evaluates metrics against configurable thresholds
+6. **Security** — The library analyzes commands, file ops, and network for unsafe behavior
+7. **Local Models** — The library probes known local model servers (Ollama, LM Studio, llama.cpp, vLLM, LocalAI, text-generation-webui, GPT4All) via HTTP APIs to collect status, loaded models, and resource usage
+8. **Terminal Layer** — This repo keeps the minimum terminal utility (`internal/cli` + `internal/tui`) and delegates detection/monitoring logic to `libagentmetrics`
 
 ### Token Data Sources
 
@@ -437,6 +427,21 @@ AgentMetrics reads token data from multiple sources depending on the agent:
 | Claude Code | `~/.claude/` SQLite DB | Direct query |
 | GitHub Copilot | VS Code telemetry logs | Log parsing |
 | Others | Process environment / logs | Heuristics |
+
+## 📝 Changelog
+
+### v0.1.1 — 2026-02-16
+
+- Added the MIT `LICENSE` file and aligned documentation links.
+- Finalized the terminal-layer migration around `libagentmetrics` with modular CLI command files.
+- Added CLI regression tests for routing aliases and shared scan helper behavior.
+
+### 2026-02-16
+
+- Migrated app internals to `libagentmetrics` as the source of detection/monitoring logic.
+- Simplified `cmd/agentmetrics/main.go` to a thin entrypoint that delegates to `internal/cli`.
+- Refactored CLI into small command-focused files (`cmd_scan`, `cmd_export`, `cmd_alerts`, `cmd_watch`, `cmd_json`).
+- Added shared scan/enrichment helpers in `internal/cli/scan_helpers.go` to reduce duplication.
 
 ## 🛠️ Development
 

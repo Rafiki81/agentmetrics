@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Rafiki81/libagentmetrics/agent"
+	"github.com/Rafiki81/libagentmetrics/config"
+	"github.com/Rafiki81/libagentmetrics/monitor"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/rafaelperezbeato/agentmetrics/internal/agent"
-	"github.com/rafaelperezbeato/agentmetrics/internal/config"
-	"github.com/rafaelperezbeato/agentmetrics/internal/monitor"
 )
 
 // RenderDashboard renders the main dashboard view
-func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.Alert, secEvents []agent.SecurityEvent, localModels []agent.LocalModelInfo, width, height int, s *Styles, disp config.DisplayConfig) string {
+func RenderDashboard(agents []agent.Instance, selected int, alerts []agent.Alert, secEvents []agent.SecurityEvent, localModels []agent.LocalModelInfo, width, height int, s *Styles, disp config.DisplayConfig) string {
 	var b strings.Builder
 
 	// Header
@@ -251,7 +251,7 @@ func RenderDashboard(agents []agent.AgentInstance, selected int, alerts []agent.
 }
 
 // renderAgentCard renders a single agent card
-func renderAgentCard(a agent.AgentInstance, width int, selected bool, s *Styles, disp config.DisplayConfig) string {
+func renderAgentCard(a agent.Instance, width int, selected bool, s *Styles, disp config.DisplayConfig) string {
 	style := s.AgentCard.Width(width)
 	if selected {
 		style = s.AgentCardSelected.Width(width)
@@ -371,7 +371,7 @@ func renderAgentCard(a agent.AgentInstance, width int, selected bool, s *Styles,
 }
 
 // RenderDetail renders the agent detail panel
-func RenderDetail(a agent.AgentInstance, fileOps []agent.FileOperation, alerts []agent.Alert, secEvents []agent.SecurityEvent, width, height int, s *Styles, disp config.DisplayConfig) string {
+func RenderDetail(a agent.Instance, fileOps []agent.FileOperation, alerts []agent.Alert, secEvents []agent.SecurityEvent, width, height int, s *Styles, disp config.DisplayConfig) string {
 	var b strings.Builder
 
 	// Header

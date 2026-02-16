@@ -3,6 +3,7 @@ module github.com/rafaelperezbeato/agentmetrics
 go 1.24.0
 
 require (
+	github.com/Rafiki81/libagentmetrics v1.1.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 )

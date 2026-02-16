@@ -3,10 +3,10 @@ package tui
 import (
 	"time"
 
+	"github.com/Rafiki81/libagentmetrics/agent"
+	"github.com/Rafiki81/libagentmetrics/config"
+	"github.com/Rafiki81/libagentmetrics/monitor"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rafaelperezbeato/agentmetrics/internal/agent"
-	"github.com/rafaelperezbeato/agentmetrics/internal/config"
-	"github.com/rafaelperezbeato/agentmetrics/internal/monitor"
 )
 
 // View represents current UI view
@@ -20,7 +20,7 @@ const (
 // Model is the main Bubble Tea model
 type Model struct {
 	// Data
-	agents        []agent.AgentInstance
+	agents        []agent.Instance
 	detector      *agent.Detector
 	fileMon       *monitor.FileWatcher
 	netMon        *monitor.NetworkMonitor
@@ -55,7 +55,7 @@ type tickMsg time.Time
 
 // agentScanMsg carries scan results
 type agentScanMsg struct {
-	agents []agent.AgentInstance
+	agents []agent.Instance
 	err    error
 }
 

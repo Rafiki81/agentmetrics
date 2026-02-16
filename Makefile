@@ -1,6 +1,6 @@
 BINARY_NAME=agentmetrics
 BUILD_DIR=bin
-VERSION=0.1.0
+VERSION=0.1.1
 LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION)"
 
 .PHONY: build clean run install test fmt lint help
@@ -59,7 +59,7 @@ release:
 	@if [ -z "$(V)" ]; then echo "❌ Usage: make release V=0.2.0"; exit 1; fi
 	@echo "🏷️  Tagging v$(V)..."
 	@sed -i '' 's/^VERSION=.*/VERSION=$(V)/' Makefile
-	@sed -i '' 's/const version = ".*"/const version = "$(V)"/' cmd/agentmetrics/main.go
+	@sed -i '' 's/var version = ".*"/var version = "$(V)"/' cmd/agentmetrics/main.go
 	git add -A
 	git commit -m "release: v$(V)"
 	git tag -a "v$(V)" -m "Release v$(V)"
